@@ -14,8 +14,8 @@ h1{text-align:center;color:#d6336c;}
 .form-row>div{flex:1;min-width:80px;}
 label{display:block;margin-bottom:4px;font-size:14px;color:#800040;}
 input[type=text], input[type=number]{width:100%;padding:5px;border-radius:8px;border:1px solid #ffc0cb;box-sizing:border-box;background-color: rgba(255,255,255,0.9);}
-.buttons-row{display:flex;gap:10px;margin-bottom:10px;flex-wrap:wrap;}
-.buttons-row button{flex:1;}
+.buttons-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;}
+.buttons-row button{flex:1;min-width:100px;}
 table{width:100%;border-collapse:collapse;margin-top:10px;overflow-x:auto;display:block;}
 th, td{border:1px solid #f5c6d0;padding:5px;text-align:center;white-space:nowrap;}
 th{background:#ffc0cb;color:#800040;}
@@ -23,7 +23,7 @@ th{background:#ffc0cb;color:#800040;}
 .btn:hover{opacity:.9;}
 .add{background:#ff69b4;color:white;} .edit{background:#ff85c1;color:white;} .delete{background:#ff4d6d;color:white;} .clear{background:#c71585;color:white;}
 .verde{background-color:#d4f0dc;} .amarelo{background-color:#fff0b3;} .vermelho{background-color:#ffc1c1;}
-tr.selected{background-color:#ffd6e0;}
+tr.selected{background-color:#ffe0ed !important;box-shadow:inset 0 0 5px #d6336c;}
 select{background-color:#ffe6f0;color:#800040;width:100%;padding:5px;border-radius:8px;border:1px solid #ffc0cb;box-sizing:border-box;}
 @media(max-width:600px){
   .form-row>div{min-width:60px;}
@@ -95,11 +95,26 @@ select{background-color:#ffe6f0;color:#800040;width:100%;padding:5px;border-radi
 let produtos = JSON.parse(localStorage.getItem('produtos')) || [];
 let editIndex = null;
 
+// ---------- Funções básicas ----------
 function salvar(){ localStorage.setItem('produtos',JSON.stringify(produtos)); atualizarTabela(); }
+function limparCampos(){ ['produto','descricao','estoqueAtual','estoqueIdeal','preco'].forEach(id=>document.getElementById(id).value=''); editIndex=null; }
+function limparTudo(){ if(confirm('Apagar todos os produtos?')){ produtos=[]; salvar(); limparCampos(); } }
+function corLinha(p){ if(p.estoqueAtual<p.estoqueIdeal) return 'vermelho'; if(p.estoqueAtual===p.estoqueIdeal) return 'amarelo'; return 'verde'; }
 
-function parsePreco(v){ const n=parseFloat(v.replace(',','.')); return isNaN(n)?NaN:n; }
+// ---------- Validação e formatação ----------
+function parsePreco(v){ const n=parseFloat(v.replace(/\./g,'').replace(',','.')); return isNaN(n)?NaN:n; }
 function checarDuplicadoProduto(produto){ return produtos.some((p,i)=>p.produto.trim().toLowerCase()===produto.trim().toLowerCase() && i!==editIndex); }
 
+// Formatação de moeda ao digitar
+document.getElementById('preco').addEventListener('input', e=>{
+  let v=e.target.value.replace(/\D/g,'');
+  v=(v/100).toFixed(2)+'';
+  v=v.replace('.',',');
+  v=v.replace(/\B(?=(\d{3})+(?!\d))/g,'.');
+  e.target.value=v;
+});
+
+// ---------- CRUD ----------
 function adicionarProduto(){
   const produto=document.getElementById('produto').value.trim();
   const descricao=document.getElementById('descricao').value.trim();
@@ -124,45 +139,73 @@ function editarProduto(index){
   document.getElementById('descricao').value=p.descricao;
   document.getElementById('estoqueAtual').value=p.estoqueAtual;
   document.getElementById('estoqueIdeal').value=p.estoqueIdeal;
-  document.getElementById('preco').value=p.preco.toFixed(2).replace('.',',');
+  document.getElementById('preco').value=p.preco.toFixed(2).replace('.',',').replace(/\B(?=(\d{3})+(?!\d))/g,'.');
   editIndex=index;
 }
 
-function excluirProduto(index){ if(confirm('Deseja excluir?')){ produtos.splice(index,1); salvar(); editIndex=null; limparCampos(); } }
-function limparCampos(){ document.getElementById('produto').value=''; document.getElementById('descricao').value=''; document.getElementById('estoqueAtual').value=''; document.getElementById('estoqueIdeal').value=''; document.getElementById('preco').value=''; editIndex=null; }
-function limparTudo(){ if(confirm('Apagar todos os produtos?')){ produtos=[]; salvar(); limparCampos(); } }
+function excluirProduto(index){ 
+  if(confirm('Deseja excluir?')){ 
+    produtos.splice(index,1); 
+    salvar(); 
+    editIndex=null; 
+    limparCampos(); 
+  } 
+}
 
-function corLinha(p){ if(p.estoqueAtual<p.estoqueIdeal) return 'vermelho'; if(p.estoqueAtual===p.estoqueIdeal) return 'amarelo'; return 'verde'; }
-
+// ---------- Atualização da tabela ----------
 function atualizarTabela(){
-  const tbody=document.querySelector('#tabela tbody'); tbody.innerHTML='';
+  const tbody=document.querySelector('#tabela tbody'); 
+  tbody.innerHTML='';
   const filtro=document.getElementById('filtro').value;
+
   produtos.forEach((p,idx)=>{
     const qtdComprar=p.estoqueAtual<p.estoqueIdeal?p.estoqueIdeal-p.estoqueAtual:0;
     if(filtro==='comprar' && qtdComprar<=0) return;
     if(filtro==='ok' && qtdComprar>0) return;
-    const tr=document.createElement('tr'); tr.className=corLinha(p);
-    const valorTotal=(qtdComprar*p.preco).toFixed(2).replace('.',',');
+
+    const valorTotal=(qtdComprar*p.preco).toFixed(2).replace('.',',').replace(/\B(?=(\d{3})+(?!\d))/g,'.');
+    const tr=document.createElement('tr'); 
+    tr.className=corLinha(p);
     tr.innerHTML=`
       <td>${p.produto}</td>
       <td>${p.estoqueAtual}</td>
       <td>${p.estoqueIdeal}</td>
-      <td>${p.preco.toFixed(2).replace('.',',')}</td>
+      <td>${p.preco.toFixed(2).replace('.',',').replace(/\B(?=(\d{3})+(?!\d))/g,'.')}</td>
       <td>${qtdComprar}</td>
       <td>${valorTotal}</td>
       <td>${qtdComprar>0?'Comprar':'OK'}</td>
-      <td><button class="btn edit" onclick="editarProduto(${idx})">Editar</button>
-          <button class="btn delete" onclick="excluirProduto(${idx})">Excluir</button></td>`;
+      <td>
+        <button class="btn edit" onclick="editarProduto(${idx})">Editar</button>
+        <button class="btn delete" onclick="excluirProduto(${idx})">Excluir</button>
+      </td>
+    `;
+
+    tr.addEventListener('click', ()=>{
+      document.querySelectorAll('#tabela tbody tr').forEach(r=>r.classList.remove('selected'));
+      tr.classList.add('selected');
+      editarProduto(idx);
+    });
+
     tbody.appendChild(tr);
   });
 }
 
+// ---------- Exportar Excel ----------
 function baixarExcel(){
   if(produtos.length===0){ alert('Não há produtos para baixar!'); return; }
   const dados=produtos.map(p=>{
     const qtdComprar=p.estoqueAtual<p.estoqueIdeal?p.estoqueIdeal-p.estoqueAtual:0;
     const valorTotal=(qtdComprar*p.preco).toFixed(2);
-    return {Produto:p.produto,Descricao:p.descricao,EstoqueAtual:p.estoqueAtual,EstoqueIdeal:p.estoqueIdeal,Preco:p.preco.toFixed(2),QtdComprar:qtdComprar,ValorTotal:valorTotal,Status:qtdComprar>0?'Comprar':'OK'};
+    return {
+      Produto:p.produto,
+      Descricao:p.descricao,
+      EstoqueAtual:p.estoqueAtual,
+      EstoqueIdeal:p.estoqueIdeal,
+      Preco:p.preco.toFixed(2),
+      QtdComprar:qtdComprar,
+      ValorTotal:valorTotal,
+      Status:qtdComprar>0?'Comprar':'OK'
+    };
   });
   const ws=XLSX.utils.json_to_sheet(dados);
   const wb=XLSX.utils.book_new();
