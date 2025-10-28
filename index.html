@@ -81,7 +81,7 @@
     table { 
       width: 100%; 
       border-collapse: collapse; 
-      margin-top: 5px; 
+      margin-top: 10px; 
       background: #fff; 
       border-radius: 10px; 
       overflow: hidden; 
@@ -138,6 +138,10 @@
           <label>Estoque Ideal:</label>
           <input type="number" id="estoqueIdeal" step="1" min="0" placeholder="0">
         </div>
+        <div>
+          <label>Preço (R$):</label>
+          <input type="number" id="preco" step="0.01" min="0" placeholder="0,00">
+        </div>
       </div>
 
       <div class="buttons-row">
@@ -158,10 +162,10 @@
       <thead>
         <tr>
           <th>Produto</th>
-          <th>Descrição</th>
           <th>Estoque Atual</th>
           <th>Estoque Ideal</th>
           <th>Qtd a Comprar</th>
+          <th>Preço (R$)</th>
           <th>Status</th>
           <th>Ações</th>
         </tr>
@@ -190,11 +194,14 @@
       const descricao = document.getElementById('descricao').value.trim();
       const estoqueAtual = parseInt(document.getElementById('estoqueAtual').value);
       const estoqueIdeal = parseInt(document.getElementById('estoqueIdeal').value);
-      if (!produto || isNaN(estoqueAtual) || isNaN(estoqueIdeal)) { 
+      const preco = parseFloat(document.getElementById('preco').value);
+
+      if (!produto || isNaN(estoqueAtual) || isNaN(estoqueIdeal) || isNaN(preco)) { 
         alert('Preencha todos os campos!'); 
         return; 
       }
-      const novoProduto = { produto, descricao, estoqueAtual, estoqueIdeal };
+
+      const novoProduto = { produto, descricao, estoqueAtual, estoqueIdeal, preco };
       if (editIndex !== null) { 
         produtos[editIndex] = novoProduto; 
         editIndex = null; 
@@ -211,6 +218,7 @@
       document.getElementById('descricao').value = p.descricao;
       document.getElementById('estoqueAtual').value = p.estoqueAtual;
       document.getElementById('estoqueIdeal').value = p.estoqueIdeal;
+      document.getElementById('preco').value = p.preco;
       editIndex = index;
     }
 
@@ -226,6 +234,7 @@
       document.getElementById('descricao').value='';
       document.getElementById('estoqueAtual').value='';
       document.getElementById('estoqueIdeal').value='';
+      document.getElementById('preco').value='';
     }
 
     function limparTudo() { 
@@ -256,15 +265,28 @@
         tr.className=corLinha(p);
         tr.innerHTML=`
           <td>${p.produto}</td>
-          <td>${p.descricao}</td>
           <td>${p.estoqueAtual}</td>
           <td>${p.estoqueIdeal}</td>
           <td class='${quantidadeComprar>0?'vermelho':''}'>${quantidadeComprar}</td>
+          <td>${p.preco.toFixed(2)}</td>
           <td>${quantidadeComprar>0?'Comprar':'OK'}</td>
           <td>
             <button class='btn edit' onclick='editarProduto(${produtos.indexOf(p)})'>Editar</button>
             <button class='btn delete' onclick='excluirProduto(${produtos.indexOf(p)})'>Excluir</button>
           </td>`;
+
+        tr.addEventListener('click', () => {
+          document.getElementById('produto').value = p.produto;
+          document.getElementById('descricao').value = p.descricao;
+          document.getElementById('estoqueAtual').value = p.estoqueAtual;
+          document.getElementById('estoqueIdeal').value = p.estoqueIdeal;
+          document.getElementById('preco').value = p.preco;
+          editIndex = produtos.indexOf(p);
+
+          document.querySelectorAll('#tabela tbody tr').forEach(r => r.classList.remove('selected'));
+          tr.classList.add('selected');
+        });
+
         tbody.appendChild(tr);
       });
     }
@@ -280,6 +302,7 @@
           'Estoque Atual': p.estoqueAtual,
           'Estoque Ideal': p.estoqueIdeal,
           'Quantidade a Comprar': quantidadeComprar,
+          'Preço (R$)': p.preco.toFixed(2),
           'Status': quantidadeComprar>0?'Comprar':'OK'
         };
       });
