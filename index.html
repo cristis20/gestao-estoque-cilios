@@ -25,6 +25,7 @@ th{background:#ffc0cb;color:#800040;}
 .verde{background-color:#d4f0dc;} .amarelo{background-color:#fff0b3;} .vermelho{background-color:#ffc1c1;}
 tr.selected{background-color:#ffe0ed !important;box-shadow:inset 0 0 5px #d6336c;}
 select{background-color:#ffe6f0;color:#800040;width:100%;padding:5px;border-radius:8px;border:1px solid #ffc0cb;box-sizing:border-box;}
+.total-container{margin-top:10px;font-weight:bold;color:#800040;font-size:16px;text-align:right;}
 </style>
 </head>
 <body>
@@ -84,17 +85,24 @@ select{background-color:#ffe6f0;color:#800040;width:100%;padding:5px;border-radi
   </thead>
   <tbody></tbody>
 </table>
+<div class="total-container" id="totalGeral">Valor Total Geral: R$ 0,00</div>
 </div>
 
 <script>
 let produtos = JSON.parse(localStorage.getItem('produtos')) || [];
 let editIndex = null;
 
+// ---------- Funções básicas ----------
 function salvar(){ localStorage.setItem('produtos',JSON.stringify(produtos)); atualizarTabela(); }
-function limparCampos(){ ['produto','descricao','estoqueAtual','estoqueIdeal','preco'].forEach(id=>document.getElementById(id).value=''); editIndex=null; }
+function limparCampos(){ 
+  ['produto','descricao','estoqueAtual','estoqueIdeal','preco'].forEach(id=>{
+    document.getElementById(id).value=''; 
+    document.getElementById(id).disabled=false;
+  }); 
+  editIndex=null; 
+}
 function limparTudo(){ if(confirm('Apagar todos os produtos?')){ produtos=[]; salvar(); limparCampos(); } }
 function corLinha(p){ if(p.estoqueAtual<p.estoqueIdeal) return 'vermelho'; if(p.estoqueAtual===p.estoqueIdeal) return 'amarelo'; return 'verde'; }
-
 function parsePreco(v){ 
   const n=parseFloat(v.replace(/\./g,'').replace('R$','').replace(',','.').trim()); 
   return isNaN(n)?NaN:n; 
@@ -103,7 +111,7 @@ function checarDuplicadoProduto(produto){
   return produtos.some((p,i)=>p.produto.trim().toLowerCase()===produto.trim().toLowerCase() && i!==editIndex); 
 }
 
-// Formatação de moeda ao digitar
+// ---------- Formatação de moeda ----------
 document.getElementById('preco').addEventListener('input', e=>{
   let v=e.target.value.replace(/\D/g,'');
   v=(v/100).toFixed(2)+'';
@@ -112,6 +120,29 @@ document.getElementById('preco').addEventListener('input', e=>{
   e.target.value='R$ '+v;
 });
 
+// ---------- Auto-preenchimento ao digitar código ----------
+document.getElementById('produto').addEventListener('input', function(){
+  const codigo = this.value.trim().toLowerCase();
+  const produtoExistente = produtos.find(p => p.produto.trim().toLowerCase() === codigo);
+
+  if(produtoExistente){
+    document.getElementById('descricao').value = produtoExistente.descricao;
+    document.getElementById('estoqueAtual').value = produtoExistente.estoqueAtual;
+    document.getElementById('estoqueIdeal').value = produtoExistente.estoqueIdeal;
+    document.getElementById('preco').value = 'R$ '+produtoExistente.preco.toFixed(2).replace('.',',').replace(/\B(?=(\d{3})+(?!\d))/g,'.');
+
+    ['descricao','estoqueAtual','estoqueIdeal','preco'].forEach(id => document.getElementById(id).disabled = true);
+    editIndex = produtos.indexOf(produtoExistente);
+  } else {
+    ['descricao','estoqueAtual','estoqueIdeal','preco'].forEach(id => {
+      document.getElementById(id).disabled = false;
+      document.getElementById(id).value = '';
+    });
+    editIndex = null;
+  }
+});
+
+// ---------- CRUD ----------
 function adicionarProduto(){
   const produto=document.getElementById('produto').value.trim();
   const descricao=document.getElementById('descricao').value.trim();
@@ -130,6 +161,7 @@ function adicionarProduto(){
   salvar(); limparCampos();
 }
 
+// ---------- Selecionar, editar e excluir ----------
 function editarProduto(index){
   const p=produtos[index];
   document.getElementById('produto').value=p.produto;
@@ -137,6 +169,7 @@ function editarProduto(index){
   document.getElementById('estoqueAtual').value=p.estoqueAtual;
   document.getElementById('estoqueIdeal').value=p.estoqueIdeal;
   document.getElementById('preco').value='R$ '+p.preco.toFixed(2).replace('.',',').replace(/\B(?=(\d{3})+(?!\d))/g,'.');
+  ['descricao','estoqueAtual','estoqueIdeal','preco'].forEach(id => document.getElementById(id).disabled = false);
   editIndex=index;
 }
 
@@ -149,17 +182,22 @@ function excluirProduto(index){
   } 
 }
 
+// ---------- Atualização da tabela ----------
 function atualizarTabela(){
   const tbody=document.querySelector('#tabela tbody'); 
   tbody.innerHTML='';
   const filtro=document.getElementById('filtro').value;
+  let totalGeral = 0;
 
   produtos.forEach((p,idx)=>{
     const qtdComprar=p.estoqueAtual<p.estoqueIdeal?p.estoqueIdeal-p.estoqueAtual:0;
     if(filtro==='comprar' && qtdComprar<=0) return;
     if(filtro==='ok' && qtdComprar>0) return;
 
-    const valorTotal=(qtdComprar*p.preco).toFixed(2).replace('.',',').replace(/\B(?=(\d{3})+(?!\d))/g,'.');
+    const valorTotal = qtdComprar*p.preco;
+    totalGeral += valorTotal;
+
+    const valorTotalStr = valorTotal.toFixed(2).replace('.',',').replace(/\B(?=(\d{3})+(?!\d))/g,'.');
     const tr=document.createElement('tr'); 
     tr.className=corLinha(p);
     tr.innerHTML=`
@@ -168,7 +206,7 @@ function atualizarTabela(){
       <td>${p.estoqueIdeal}</td>
       <td>R$ ${p.preco.toFixed(2).replace('.',',').replace(/\B(?=(\d{3})+(?!\d))/g,'.')}</td>
       <td>${qtdComprar}</td>
-      <td>R$ ${valorTotal}</td>
+      <td>R$ ${valorTotalStr}</td>
       <td>${qtdComprar>0?'Comprar':'OK'}</td>
       <td>
         <button class="btn edit" onclick="editarProduto(${idx})">Editar</button>
@@ -184,8 +222,11 @@ function atualizarTabela(){
 
     tbody.appendChild(tr);
   });
+
+  document.getElementById('totalGeral').textContent = 'Valor Total Geral: R$ '+totalGeral.toFixed(2).replace('.',',').replace(/\B(?=(\d{3})+(?!\d))/g,'.');
 }
 
+// ---------- Exportar Excel ----------
 function baixarExcel(){
   if(produtos.length===0){ alert('Não há produtos para baixar!'); return; }
   const dados=produtos.map(p=>{
