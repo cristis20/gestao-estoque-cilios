@@ -65,6 +65,20 @@
       background-color: rgba(255, 255, 255, 0.9);
     }
 
+    input.invalid {
+      border-color: #ff4d6d;
+      box-shadow: 0 0 0 3px rgba(255,77,109,0.08);
+    }
+
+    .hint {
+      color: #b0003a;
+      font-size: 13px;
+      margin-top: 4px;
+      display: none;
+    }
+
+    .hint.visible { display: block; }
+
     .buttons-row { 
       display: flex; 
       flex-wrap: wrap;
@@ -117,6 +131,7 @@
         <div>
           <label>Produto:</label>
           <input type="text" id="produto" maxlength="50" placeholder="Código do produto (máx 50)">
+          <div id="produto-hint" class="hint">Produto já cadastrado!</div>
         </div>
         <div>
           <label>Descrição:</label>
@@ -159,8 +174,9 @@
           <th>Produto</th>
           <th>Estoque Atual</th>
           <th>Estoque Ideal</th>
-          <th>Qtd a Comprar</th>
           <th>Preço (R$)</th>
+          <th>Qtd a Comprar</th>
+          <th>Valor Total (R$)</th>
           <th>Status</th>
           <th>Ações</th>
         </tr>
@@ -170,12 +186,6 @@
   </div>
 
   <script>
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.getRegistrations().then(function(registrations){
-        for(let registration of registrations) { registration.unregister(); }
-      });
-    }
-
     let produtos = JSON.parse(localStorage.getItem('produtos')) || [];
     let editIndex = null;
 
@@ -191,22 +201,59 @@
       return isNaN(v) ? NaN : v;
     }
 
+    function checarDuplicadoProduto(produtoValor, showMsg = false) {
+      const v = (produtoValor || '').trim().toLowerCase();
+      if (!v) { 
+        if (showMsg) {
+          document.getElementById('produto-hint').classList.remove('visible');
+          document.getElementById('produto').classList.remove('invalid');
+        }
+        return false;
+      }
+      const idx = produtos.findIndex((p, i) => p.produto.trim().toLowerCase() === v && i !== editIndex);
+      const existe = idx !== -1;
+      if (showMsg) {
+        const hintEl = document.getElementById('produto-hint');
+        const inputEl = document.getElementById('produto');
+        if (existe) {
+          hintEl.classList.add('visible');
+          inputEl.classList.add('invalid');
+        } else {
+          hintEl.classList.remove('visible');
+          inputEl.classList.remove('invalid');
+        }
+      }
+      return existe;
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const produtoInput = document.getElementById('produto');
+      produtoInput.addEventListener('blur', () => {
+        const val = produtoInput.value;
+        const duplicado = checarDuplicadoProduto(val, true);
+        if (duplicado) produtoInput.focus();
+      });
+      produtoInput.addEventListener('input', () => {
+        checarDuplicadoProduto(produtoInput.value, true);
+      });
+    });
+
     function adicionarProduto() {
-      const produto = document.getElementById('produto').value.trim();
+      const produtoEl = document.getElementById('produto');
+      const produto = produtoEl.value.trim();
       const descricao = document.getElementById('descricao').value.trim();
       const estoqueAtual = parseInt(document.getElementById('estoqueAtual').value);
       const estoqueIdeal = parseInt(document.getElementById('estoqueIdeal').value);
       const preco = parsePreco(document.getElementById('preco').value);
 
-      if (!produto) return alert('Informe o código do produto.');
-      if (isNaN(estoqueAtual)) return alert('Informe o Estoque Atual.');
-      if (isNaN(estoqueIdeal)) return alert('Informe o Estoque Ideal.');
-      if (isNaN(preco)) return alert('Informe o Preço válido (use , ou . para decimais).');
+      if (!produto) { alert('Informe o código do produto.'); produtoEl.focus(); return; }
+      if (isNaN(estoqueAtual)) { alert('Informe o Estoque Atual.'); document.getElementById('estoqueAtual').focus(); return; }
+      if (isNaN(estoqueIdeal)) { alert('Informe o Estoque Ideal.'); document.getElementById('estoqueIdeal').focus(); return; }
+      if (isNaN(preco)) { alert('Informe o Preço válido (use , ou . para decimais).'); document.getElementById('preco').focus(); return; }
 
-      // Impedir duplicado (exceto se for o mesmo sendo editado)
-      const produtoExistente = produtos.findIndex(p => p.produto.toLowerCase() === produto.toLowerCase());
-      if (produtoExistente !== -1 && produtoExistente !== editIndex) {
+      if (checarDuplicadoProduto(produto, true)) {
         alert('Produto já cadastrado! Edite o existente ou use outro código.');
+        produtoEl.focus();
         return;
       }
 
@@ -232,7 +279,7 @@
       document.getElementById('estoqueIdeal').value = p.estoqueIdeal;
       document.getElementById('preco').value = (typeof p.preco === 'number') ? p.preco.toFixed(2).replace('.', ',') : '';
       editIndex = index;
-
+      checarDuplicadoProduto(p.produto, true);
       document.querySelectorAll('#tabela tbody tr').forEach(r => r.classList.remove('selected'));
       const rows = Array.from(document.querySelectorAll('#tabela tbody tr'));
       if (rows[index]) rows[index].classList.add('selected');
@@ -252,6 +299,8 @@
       document.getElementById('estoqueAtual').value = '';
       document.getElementById('estoqueIdeal').value = '';
       document.getElementById('preco').value = '';
+      document.getElementById('produto-hint').classList.remove('visible');
+      document.getElementById('produto').classList.remove('invalid');
       document.querySelectorAll('#tabela tbody tr').forEach(r => r.classList.remove('selected'));
     }
 
@@ -284,51 +333,6 @@
         tr.className = corLinha(p);
 
         const precoFormatado = (typeof p.preco === 'number') ? p.preco.toFixed(2).replace('.', ',') : '0,00';
+        const valorTotal = (quantidadeComprar * (p.preco||0)).toFixed(2).replace('.', ',');
 
-        tr.innerHTML = `
-          <td>${p.produto}</td>
-          <td>${p.estoqueAtual}</td>
-          <td>${p.estoqueIdeal}</td>
-          <td class='${quantidadeComprar>0?'vermelho':''}'>${quantidadeComprar}</td>
-          <td>R$ ${precoFormatado}</td>
-          <td>${quantidadeComprar>0 ? 'Comprar' : 'OK'}</td>
-          <td>
-            <button type="button" class="btn edit" onclick="editarProduto(${produtos.indexOf(p)})">Editar</button>
-            <button type="button" class="btn delete" onclick="excluirProduto(${produtos.indexOf(p)})">Excluir</button>
-          </td>`;
-
-        tr.addEventListener('click', () => {
-          const indexOriginal = produtos.indexOf(p);
-          editarProduto(indexOriginal);
-        });
-
-        tbody.appendChild(tr);
-      });
-    }
-
-    function baixarExcel() {
-      if (produtos.length === 0) { alert('Não há produtos para baixar!'); return; }
-
-      const dados = produtos.map(p => {
-        const quantidadeComprar = p.estoqueAtual < p.estoqueIdeal ? (p.estoqueIdeal - p.estoqueAtual) : 0;
-        return {
-          'Produto': p.produto,
-          'Descrição': p.descricao,
-          'Estoque Atual': p.estoqueAtual,
-          'Estoque Ideal': p.estoqueIdeal,
-          'Quantidade a Comprar': quantidadeComprar,
-          'Preço (R$)': (typeof p.preco === 'number') ? p.preco.toFixed(2) : '',
-          'Status': quantidadeComprar > 0 ? 'Comprar' : 'OK'
-        };
-      });
-
-      const ws = XLSX.utils.json_to_sheet(dados);
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, 'Estoque');
-      XLSX.writeFile(wb, 'estoque.xlsx');
-    }
-
-    atualizarTabela();
-  </script>
-</body>
-</html>
+       
