@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Gestão de Estoque</title>
   <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#4CAF50">
+  <meta name="theme-color" content="#FFB6C1">
 
   <!-- Biblioteca SheetJS para gerar Excel -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -16,21 +16,80 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
   <style>
-    body { font-family: Arial, sans-serif; background: #f5f5f5; margin: 0; padding: 20px; overflow-x: hidden; }
-    h1 { text-align: center; color: #333; }
-    .container { max-width: 950px; width: 100%; margin: 0 auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-    input, button, select { display: block; width: 100%; padding: 8px; margin-bottom: 10px; box-sizing: border-box; }
-    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-    th, td { border: 1px solid #ddd; padding: 10px; text-align: center; }
-    th { background-color: #f0f0f0; }
-    .btn { cursor: pointer; border: none; border-radius: 5px; padding: 8px 12px; }
-    .add { background: #4CAF50; color: white; }
-    .edit { background: #2196F3; color: white; }
-    .delete { background: #f44336; color: white; }
-    .clear { background: #555; color: white; float: right; }
-    .verde { background-color: #c8e6c9; }
-    .amarelo { background-color: #fff9c4; }
-    .vermelho { background-color: #ffcdd2; }
+    body { 
+      font-family: Arial, sans-serif; 
+      background: #ffe6f0; /* rosa suave */
+      margin: 0; 
+      padding: 20px; 
+      overflow-x: hidden; 
+    }
+
+    h1 { 
+      text-align: center; 
+      color: #d6336c; /* rosa mais forte */
+    }
+
+    .container { 
+      max-width: 950px; 
+      width: 100%; 
+      margin: 0 auto; 
+      background: #fff0f6; /* rosa clarinho para o container */
+      padding: 20px; 
+      border-radius: 15px; 
+      box-shadow: 0 0 15px rgba(198, 77, 123, 0.3); /* sombra suave rosa */
+    }
+
+    input, button, select { 
+      display: block; 
+      width: 100%; 
+      padding: 10px; 
+      margin-bottom: 10px; 
+      box-sizing: border-box; 
+      border-radius: 8px;
+      border: 1px solid #ffc0cb; /* borda rosa suave */
+    }
+
+    table { 
+      width: 100%; 
+      border-collapse: collapse; 
+      margin-top: 20px; 
+      background: #fff; 
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    th, td { 
+      border: 1px solid #f5c6d0; 
+      padding: 12px; 
+      text-align: center; 
+    }
+
+    th { 
+      background-color: #ffc0cb; /* rosa médio para o cabeçalho */
+      color: #800040;
+    }
+
+    .btn { 
+      cursor: pointer; 
+      border: none; 
+      border-radius: 8px; 
+      padding: 10px 15px; 
+      font-weight: bold;
+      transition: 0.3s;
+    }
+
+    .btn:hover { opacity: 0.9; }
+
+    .add { background: #ff69b4; color: white; } /* rosa vibrante */
+    .edit { background: #ff85c1; color: white; } /* rosa claro */
+    .delete { background: #ff4d6d; color: white; } /* vermelho-rosado */
+    .clear { background: #c71585; color: white; float: right; }
+
+    .verde { background-color: #d4f0dc; }    /* verde suave */
+    .amarelo { background-color: #fff0b3; }  /* amarelo suave */
+    .vermelho { background-color: #ffc1c1; } /* vermelho suave */
+
+    select { background-color: #ffe6f0; color: #800040; }
   </style>
 </head>
 <body>
@@ -74,7 +133,6 @@
   </div>
 
   <script>
-    // Ignorar service workers antigos
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.getRegistrations().then(function(registrations){
         for(let registration of registrations) { registration.unregister(); }
