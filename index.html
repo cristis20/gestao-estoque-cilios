@@ -9,13 +9,13 @@
 body{font-family:Arial,sans-serif;background:#ffe6f0;margin:0;padding:10px;}
 h1{text-align:center;color:#d6336c;}
 .container{max-width:950px;margin:0 auto;background:#fff0f6;padding:15px;border-radius:15px;box-shadow:0 0 15px rgba(198,77,123,0.3);}
-.form-container{border:2px solid #ffc0cb;border-radius:15px;padding:10px;margin-bottom:15px;background:#fffafa;}
+.form-container{border:2px solid #ffc0cb;border-radius:15px;padding:10px;margin-bottom:15px;background:#fffafa;overflow-x:auto;}
 .form-row{display:flex;gap:10px;margin-bottom:10px;flex-wrap:wrap;}
 .form-row>div{flex:1;min-width:80px;}
 label{display:block;margin-bottom:4px;font-size:14px;color:#800040;}
 input[type=text], input[type=number]{width:100%;padding:5px;border-radius:8px;border:1px solid #ffc0cb;box-sizing:border-box;background-color: rgba(255,255,255,0.9);}
-.buttons-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;}
-.buttons-row button{flex:1;min-width:100px;}
+.buttons-row{display:flex;gap:10px;margin-top:10px;overflow-x:auto;}
+.buttons-row button{flex:none;min-width:120px;}
 table{width:100%;border-collapse:collapse;margin-top:10px;overflow-x:auto;display:block;}
 th, td{border:1px solid #f5c6d0;padding:5px;text-align:center;white-space:nowrap;}
 th{background:#ffc0cb;color:#800040;}
@@ -25,11 +25,6 @@ th{background:#ffc0cb;color:#800040;}
 .verde{background-color:#d4f0dc;} .amarelo{background-color:#fff0b3;} .vermelho{background-color:#ffc1c1;}
 tr.selected{background-color:#ffe0ed !important;box-shadow:inset 0 0 5px #d6336c;}
 select{background-color:#ffe6f0;color:#800040;width:100%;padding:5px;border-radius:8px;border:1px solid #ffc0cb;box-sizing:border-box;}
-@media(max-width:600px){
-  .form-row>div{min-width:60px;}
-  input[type=text],input[type=number],select{padding:4px;font-size:13px;}
-  .buttons-row button{flex:100%;}
-}
 </style>
 </head>
 <body>
@@ -57,7 +52,7 @@ select{background-color:#ffe6f0;color:#800040;width:100%;padding:5px;border-radi
     </div>
     <div>
       <label>Preço (R$):</label>
-      <input type="text" id="preco" placeholder="0,00">
+      <input type="text" id="preco" placeholder="R$ 0,00">
     </div>
   </div>
   <div class="buttons-row">
@@ -95,15 +90,18 @@ select{background-color:#ffe6f0;color:#800040;width:100%;padding:5px;border-radi
 let produtos = JSON.parse(localStorage.getItem('produtos')) || [];
 let editIndex = null;
 
-// ---------- Funções básicas ----------
 function salvar(){ localStorage.setItem('produtos',JSON.stringify(produtos)); atualizarTabela(); }
 function limparCampos(){ ['produto','descricao','estoqueAtual','estoqueIdeal','preco'].forEach(id=>document.getElementById(id).value=''); editIndex=null; }
 function limparTudo(){ if(confirm('Apagar todos os produtos?')){ produtos=[]; salvar(); limparCampos(); } }
 function corLinha(p){ if(p.estoqueAtual<p.estoqueIdeal) return 'vermelho'; if(p.estoqueAtual===p.estoqueIdeal) return 'amarelo'; return 'verde'; }
 
-// ---------- Validação e formatação ----------
-function parsePreco(v){ const n=parseFloat(v.replace(/\./g,'').replace(',','.')); return isNaN(n)?NaN:n; }
-function checarDuplicadoProduto(produto){ return produtos.some((p,i)=>p.produto.trim().toLowerCase()===produto.trim().toLowerCase() && i!==editIndex); }
+function parsePreco(v){ 
+  const n=parseFloat(v.replace(/\./g,'').replace('R$','').replace(',','.').trim()); 
+  return isNaN(n)?NaN:n; 
+}
+function checarDuplicadoProduto(produto){ 
+  return produtos.some((p,i)=>p.produto.trim().toLowerCase()===produto.trim().toLowerCase() && i!==editIndex); 
+}
 
 // Formatação de moeda ao digitar
 document.getElementById('preco').addEventListener('input', e=>{
@@ -111,10 +109,9 @@ document.getElementById('preco').addEventListener('input', e=>{
   v=(v/100).toFixed(2)+'';
   v=v.replace('.',',');
   v=v.replace(/\B(?=(\d{3})+(?!\d))/g,'.');
-  e.target.value=v;
+  e.target.value='R$ '+v;
 });
 
-// ---------- CRUD ----------
 function adicionarProduto(){
   const produto=document.getElementById('produto').value.trim();
   const descricao=document.getElementById('descricao').value.trim();
@@ -139,7 +136,7 @@ function editarProduto(index){
   document.getElementById('descricao').value=p.descricao;
   document.getElementById('estoqueAtual').value=p.estoqueAtual;
   document.getElementById('estoqueIdeal').value=p.estoqueIdeal;
-  document.getElementById('preco').value=p.preco.toFixed(2).replace('.',',').replace(/\B(?=(\d{3})+(?!\d))/g,'.');
+  document.getElementById('preco').value='R$ '+p.preco.toFixed(2).replace('.',',').replace(/\B(?=(\d{3})+(?!\d))/g,'.');
   editIndex=index;
 }
 
@@ -152,7 +149,6 @@ function excluirProduto(index){
   } 
 }
 
-// ---------- Atualização da tabela ----------
 function atualizarTabela(){
   const tbody=document.querySelector('#tabela tbody'); 
   tbody.innerHTML='';
@@ -170,9 +166,9 @@ function atualizarTabela(){
       <td>${p.produto}</td>
       <td>${p.estoqueAtual}</td>
       <td>${p.estoqueIdeal}</td>
-      <td>${p.preco.toFixed(2).replace('.',',').replace(/\B(?=(\d{3})+(?!\d))/g,'.')}</td>
+      <td>R$ ${p.preco.toFixed(2).replace('.',',').replace(/\B(?=(\d{3})+(?!\d))/g,'.')}</td>
       <td>${qtdComprar}</td>
-      <td>${valorTotal}</td>
+      <td>R$ ${valorTotal}</td>
       <td>${qtdComprar>0?'Comprar':'OK'}</td>
       <td>
         <button class="btn edit" onclick="editarProduto(${idx})">Editar</button>
@@ -190,7 +186,6 @@ function atualizarTabela(){
   });
 }
 
-// ---------- Exportar Excel ----------
 function baixarExcel(){
   if(produtos.length===0){ alert('Não há produtos para baixar!'); return; }
   const dados=produtos.map(p=>{
@@ -198,7 +193,6 @@ function baixarExcel(){
     const valorTotal=(qtdComprar*p.preco).toFixed(2);
     return {
       Produto:p.produto,
-      Descricao:p.descricao,
       EstoqueAtual:p.estoqueAtual,
       EstoqueIdeal:p.estoqueIdeal,
       Preco:p.preco.toFixed(2),
