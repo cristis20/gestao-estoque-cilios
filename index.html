@@ -1,338 +1,176 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Gestão de Estoque</title>
-  <meta name="theme-color" content="#FFB6C1">
-
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-
-  <style>
-    body { 
-      font-family: Arial, sans-serif; 
-      background: #ffe6f0; 
-      margin: 0; 
-      padding: 20px; 
-      overflow-x: hidden;
-    }
-
-    h1 { text-align: center; color: #d6336c; }
-
-    .container { 
-      max-width: 950px; 
-      width: 100%; 
-      margin: 0 auto; 
-      background: #fff0f6; 
-      padding: 20px; 
-      border-radius: 15px; 
-      box-shadow: 0 0 15px rgba(198, 77, 123, 0.3);
-    }
-
-    .form-container {
-      border: 2px solid #ffc0cb;
-      border-radius: 15px;
-      padding: 15px;
-      background: #fffafa;
-      margin-bottom: 15px;
-    }
-
-    .form-row { 
-      display: flex; 
-      flex-wrap: wrap;
-      gap: 10px; 
-      margin-bottom: 10px; 
-    }
-
-    .form-row > div { 
-      flex: 1;
-      min-width: 140px;
-    }
-
-    label { 
-      display: block; 
-      margin-bottom: 4px; 
-      font-size: 14px;
-      color: #800040;
-    }
-
-    input[type="text"], input[type="number"], select {
-      width: 100%;
-      padding: 8px;
-      border-radius: 8px;
-      border: 1px solid #ffc0cb;
-      box-sizing: border-box;
-      background-color: rgba(255, 255, 255, 0.9);
-    }
-
-    input.invalid {
-      border-color: #ff4d6d;
-      box-shadow: 0 0 0 3px rgba(255,77,109,0.08);
-    }
-
-    .hint {
-      color: #b0003a;
-      font-size: 13px;
-      margin-top: 4px;
-      display: none;
-    }
-
-    .hint.visible { display: block; }
-
-    .buttons-row { 
-      display: flex; 
-      flex-wrap: wrap;
-      gap: 10px; 
-      margin-bottom: 10px; 
-    }
-    .buttons-row button { flex: 1; }
-
-    table { 
-      width: 100%; 
-      border-collapse: collapse; 
-      margin-top: 10px; 
-      background: #fff; 
-      border-radius: 10px; 
-      overflow: hidden; 
-    }
-
-    th, td { border: 1px solid #f5c6d0; padding: 8px; text-align: center; }
-    th { background-color: #ffc0cb; color: #800040; }
-
-    .btn { cursor: pointer; border: none; border-radius: 8px; padding: 10px 15px; font-weight: bold; transition: 0.3s; }
-    .btn:hover { opacity: 0.9; }
-
-    .add { background: #ff69b4; color: white; } 
-    .edit { background: #ff85c1; color: white; } 
-    .delete { background: #ff4d6d; color: white; } 
-    .clear { background: #c71585; color: white; }
-
-    .verde { background-color: #d4f0dc; }    
-    .amarelo { background-color: #fff0b3; }  
-    .vermelho { background-color: #ffc1c1; }
-
-    select { background-color: #ffe6f0; color: #800040; }
-
-    tr.selected { background-color: #ffd6e0; }
-
-    @media (max-width: 600px) {
-      body { padding: 10px; }
-      .container { padding: 15px; }
-      .buttons-row button { flex: 100%; }
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gestão de Estoque</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+body{font-family:Arial,sans-serif;background:#ffe6f0;margin:0;padding:10px;}
+h1{text-align:center;color:#d6336c;}
+.container{max-width:950px;margin:0 auto;background:#fff0f6;padding:15px;border-radius:15px;box-shadow:0 0 15px rgba(198,77,123,0.3);}
+.form-container{border:2px solid #ffc0cb;border-radius:15px;padding:10px;margin-bottom:15px;background:#fffafa;}
+.form-row{display:flex;gap:10px;margin-bottom:10px;flex-wrap:wrap;}
+.form-row>div{flex:1;min-width:80px;}
+label{display:block;margin-bottom:4px;font-size:14px;color:#800040;}
+input[type=text], input[type=number]{width:100%;padding:5px;border-radius:8px;border:1px solid #ffc0cb;box-sizing:border-box;background-color: rgba(255,255,255,0.9);}
+.buttons-row{display:flex;gap:10px;margin-bottom:10px;flex-wrap:wrap;}
+.buttons-row button{flex:1;}
+table{width:100%;border-collapse:collapse;margin-top:10px;overflow-x:auto;display:block;}
+th, td{border:1px solid #f5c6d0;padding:5px;text-align:center;white-space:nowrap;}
+th{background:#ffc0cb;color:#800040;}
+.btn{cursor:pointer;border:none;border-radius:8px;padding:10px;font-weight:bold;transition:.3s;}
+.btn:hover{opacity:.9;}
+.add{background:#ff69b4;color:white;} .edit{background:#ff85c1;color:white;} .delete{background:#ff4d6d;color:white;} .clear{background:#c71585;color:white;}
+.verde{background-color:#d4f0dc;} .amarelo{background-color:#fff0b3;} .vermelho{background-color:#ffc1c1;}
+tr.selected{background-color:#ffd6e0;}
+select{background-color:#ffe6f0;color:#800040;width:100%;padding:5px;border-radius:8px;border:1px solid #ffc0cb;box-sizing:border-box;}
+@media(max-width:600px){
+  .form-row>div{min-width:60px;}
+  input[type=text],input[type=number],select{padding:4px;font-size:13px;}
+  .buttons-row button{flex:100%;}
+}
+</style>
 </head>
 <body>
-  <div class="container">
-    <h1>Gestão de Estoque</h1>
-
-    <div class="form-container">
-      <div class="form-row">
-        <div>
-          <label>Produto:</label>
-          <input type="text" id="produto" maxlength="50" placeholder="Código do produto (máx 50)">
-          <div id="produto-hint" class="hint">Produto já cadastrado!</div>
-        </div>
-        <div>
-          <label>Descrição:</label>
-          <input type="text" id="descricao" maxlength="200" placeholder="Descrição (máx 200)">
-        </div>
-      </div>
-
-      <div class="form-row">
-        <div>
-          <label>Estoque Atual:</label>
-          <input type="number" id="estoqueAtual" step="1" min="0" placeholder="0">
-        </div>
-        <div>
-          <label>Estoque Ideal:</label>
-          <input type="number" id="estoqueIdeal" step="1" min="0" placeholder="0">
-        </div>
-        <div>
-          <label>Preço (R$):</label>
-          <input type="text" id="preco" placeholder="0,00">
-        </div>
-      </div>
-
-      <div class="buttons-row">
-        <button type="button" class="btn add" onclick="adicionarProduto()">Adicionar</button>
-        <button type="button" class="btn clear" onclick="limparTudo()">Limpar Tudo</button>
-        <button type="button" class="btn" onclick="baixarExcel()">Baixar Excel</button>
-      </div>
+<div class="container">
+<h1>Gestão de Estoque</h1>
+<div class="form-container">
+  <div class="form-row">
+    <div>
+      <label>Produto:</label>
+      <input type="text" id="produto" maxlength="50" placeholder="Código">
     </div>
-
-    <label>Filtrar produtos:</label>
-    <select id="filtro" onchange="atualizarTabela()">
-      <option value="todos">Todos</option>
-      <option value="comprar">Só Precisa Comprar</option>
-      <option value="ok">Só OK</option>
-    </select>
-
-    <table id="tabela">
-      <thead>
-        <tr>
-          <th>Produto</th>
-          <th>Estoque Atual</th>
-          <th>Estoque Ideal</th>
-          <th>Preço (R$)</th>
-          <th>Qtd a Comprar</th>
-          <th>Valor Total (R$)</th>
-          <th>Status</th>
-          <th>Ações</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
+    <div>
+      <label>Descrição:</label>
+      <input type="text" id="descricao" maxlength="200" placeholder="Descrição">
+    </div>
   </div>
+  <div class="form-row">
+    <div>
+      <label>Estoque Atual:</label>
+      <input type="number" id="estoqueAtual" min="0" step="1">
+    </div>
+    <div>
+      <label>Estoque Ideal:</label>
+      <input type="number" id="estoqueIdeal" min="0" step="1">
+    </div>
+    <div>
+      <label>Preço (R$):</label>
+      <input type="text" id="preco" placeholder="0,00">
+    </div>
+  </div>
+  <div class="buttons-row">
+    <button class="btn add" onclick="adicionarProduto()">Adicionar</button>
+    <button class="btn clear" onclick="limparTudo()">Limpar Tudo</button>
+    <button class="btn" onclick="baixarExcel()">Baixar Excel</button>
+  </div>
+</div>
 
-  <script>
-    let produtos = JSON.parse(localStorage.getItem('produtos')) || [];
-    let editIndex = null;
+<label>Filtrar produtos:</label>
+<select id="filtro" onchange="atualizarTabela()">
+  <option value="todos">Todos</option>
+  <option value="comprar">Só Precisa Comprar</option>
+  <option value="ok">Só OK</option>
+</select>
 
-    function salvar() {
-      localStorage.setItem('produtos', JSON.stringify(produtos));
-      atualizarTabela();
-    }
+<table id="tabela">
+  <thead>
+    <tr>
+      <th>Produto</th>
+      <th>Estoque Atual</th>
+      <th>Estoque Ideal</th>
+      <th>Preço (R$)</th>
+      <th>Qtd a Comprar</th>
+      <th>Valor Total (R$)</th>
+      <th>Status</th>
+      <th>Ações</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+</div>
 
-    function parsePreco(valorStr) {
-      if (typeof valorStr !== 'string') return NaN;
-      const s = valorStr.trim().replace(/\s/g, '').replace(',', '.');
-      const v = parseFloat(s);
-      return isNaN(v) ? NaN : v;
-    }
+<script>
+let produtos = JSON.parse(localStorage.getItem('produtos')) || [];
+let editIndex = null;
 
-    function checarDuplicadoProduto(produtoValor, showMsg = false) {
-      const v = (produtoValor || '').trim().toLowerCase();
-      if (!v) { 
-        if (showMsg) {
-          document.getElementById('produto-hint').classList.remove('visible');
-          document.getElementById('produto').classList.remove('invalid');
-        }
-        return false;
-      }
-      const idx = produtos.findIndex((p, i) => p.produto.trim().toLowerCase() === v && i !== editIndex);
-      const existe = idx !== -1;
-      if (showMsg) {
-        const hintEl = document.getElementById('produto-hint');
-        const inputEl = document.getElementById('produto');
-        if (existe) {
-          hintEl.classList.add('visible');
-          inputEl.classList.add('invalid');
-        } else {
-          hintEl.classList.remove('visible');
-          inputEl.classList.remove('invalid');
-        }
-      }
-      return existe;
-    }
+function salvar(){ localStorage.setItem('produtos',JSON.stringify(produtos)); atualizarTabela(); }
 
-    document.addEventListener('DOMContentLoaded', () => {
-      const produtoInput = document.getElementById('produto');
-      produtoInput.addEventListener('blur', () => {
-        const val = produtoInput.value;
-        const duplicado = checarDuplicadoProduto(val, true);
-        if (duplicado) produtoInput.focus();
-      });
-      produtoInput.addEventListener('input', () => {
-        checarDuplicadoProduto(produtoInput.value, true);
-      });
-    });
+function parsePreco(v){ const n=parseFloat(v.replace(',','.')); return isNaN(n)?NaN:n; }
+function checarDuplicadoProduto(produto){ return produtos.some((p,i)=>p.produto.trim().toLowerCase()===produto.trim().toLowerCase() && i!==editIndex); }
 
-    function adicionarProduto() {
-      const produtoEl = document.getElementById('produto');
-      const produto = produtoEl.value.trim();
-      const descricao = document.getElementById('descricao').value.trim();
-      const estoqueAtual = parseInt(document.getElementById('estoqueAtual').value);
-      const estoqueIdeal = parseInt(document.getElementById('estoqueIdeal').value);
-      const preco = parsePreco(document.getElementById('preco').value);
+function adicionarProduto(){
+  const produto=document.getElementById('produto').value.trim();
+  const descricao=document.getElementById('descricao').value.trim();
+  const estoqueAtual=parseInt(document.getElementById('estoqueAtual').value);
+  const estoqueIdeal=parseInt(document.getElementById('estoqueIdeal').value);
+  const preco=parsePreco(document.getElementById('preco').value);
 
-      if (!produto) { alert('Informe o código do produto.'); produtoEl.focus(); return; }
-      if (isNaN(estoqueAtual)) { alert('Informe o Estoque Atual.'); document.getElementById('estoqueAtual').focus(); return; }
-      if (isNaN(estoqueIdeal)) { alert('Informe o Estoque Ideal.'); document.getElementById('estoqueIdeal').focus(); return; }
-      if (isNaN(preco)) { alert('Informe o Preço válido (use , ou . para decimais).'); document.getElementById('preco').focus(); return; }
+  if(!produto){ alert('Informe o código do produto'); return; }
+  if(isNaN(estoqueAtual)){ alert('Informe o estoque atual'); return; }
+  if(isNaN(estoqueIdeal)){ alert('Informe o estoque ideal'); return; }
+  if(isNaN(preco)){ alert('Informe o preço válido'); return; }
+  if(checarDuplicadoProduto(produto)){ alert('Produto já cadastrado!'); return; }
 
-      if (checarDuplicadoProduto(produto, true)) {
-        alert('Produto já cadastrado! Edite o existente ou use outro código.');
-        produtoEl.focus();
-        return;
-      }
+  const novo={produto,descricao,estoqueAtual,estoqueIdeal,preco:parseFloat(preco.toFixed(2))};
+  if(editIndex!==null){ produtos[editIndex]=novo; editIndex=null; } else { produtos.push(novo); }
+  salvar(); limparCampos();
+}
 
-      const novoProduto = { produto, descricao, estoqueAtual, estoqueIdeal, preco: Number(preco.toFixed(2)) };
+function editarProduto(index){
+  const p=produtos[index];
+  document.getElementById('produto').value=p.produto;
+  document.getElementById('descricao').value=p.descricao;
+  document.getElementById('estoqueAtual').value=p.estoqueAtual;
+  document.getElementById('estoqueIdeal').value=p.estoqueIdeal;
+  document.getElementById('preco').value=p.preco.toFixed(2).replace('.',',');
+  editIndex=index;
+}
 
-      if (editIndex !== null) {
-        produtos[editIndex] = novoProduto;
-        editIndex = null;
-      } else {
-        produtos.push(novoProduto);
-      }
+function excluirProduto(index){ if(confirm('Deseja excluir?')){ produtos.splice(index,1); salvar(); editIndex=null; limparCampos(); } }
+function limparCampos(){ document.getElementById('produto').value=''; document.getElementById('descricao').value=''; document.getElementById('estoqueAtual').value=''; document.getElementById('estoqueIdeal').value=''; document.getElementById('preco').value=''; editIndex=null; }
+function limparTudo(){ if(confirm('Apagar todos os produtos?')){ produtos=[]; salvar(); limparCampos(); } }
 
-      salvar();
-      limparCampos();
-    }
+function corLinha(p){ if(p.estoqueAtual<p.estoqueIdeal) return 'vermelho'; if(p.estoqueAtual===p.estoqueIdeal) return 'amarelo'; return 'verde'; }
 
-    function editarProduto(index) {
-      const p = produtos[index];
-      if (!p) return;
-      document.getElementById('produto').value = p.produto;
-      document.getElementById('descricao').value = p.descricao;
-      document.getElementById('estoqueAtual').value = p.estoqueAtual;
-      document.getElementById('estoqueIdeal').value = p.estoqueIdeal;
-      document.getElementById('preco').value = (typeof p.preco === 'number') ? p.preco.toFixed(2).replace('.', ',') : '';
-      editIndex = index;
-      checarDuplicadoProduto(p.produto, true);
-      document.querySelectorAll('#tabela tbody tr').forEach(r => r.classList.remove('selected'));
-      const rows = Array.from(document.querySelectorAll('#tabela tbody tr'));
-      if (rows[index]) rows[index].classList.add('selected');
-    }
+function atualizarTabela(){
+  const tbody=document.querySelector('#tabela tbody'); tbody.innerHTML='';
+  const filtro=document.getElementById('filtro').value;
+  produtos.forEach((p,idx)=>{
+    const qtdComprar=p.estoqueAtual<p.estoqueIdeal?p.estoqueIdeal-p.estoqueAtual:0;
+    if(filtro==='comprar' && qtdComprar<=0) return;
+    if(filtro==='ok' && qtdComprar>0) return;
+    const tr=document.createElement('tr'); tr.className=corLinha(p);
+    const valorTotal=(qtdComprar*p.preco).toFixed(2).replace('.',',');
+    tr.innerHTML=`
+      <td>${p.produto}</td>
+      <td>${p.estoqueAtual}</td>
+      <td>${p.estoqueIdeal}</td>
+      <td>${p.preco.toFixed(2).replace('.',',')}</td>
+      <td>${qtdComprar}</td>
+      <td>${valorTotal}</td>
+      <td>${qtdComprar>0?'Comprar':'OK'}</td>
+      <td><button class="btn edit" onclick="editarProduto(${idx})">Editar</button>
+          <button class="btn delete" onclick="excluirProduto(${idx})">Excluir</button></td>`;
+    tbody.appendChild(tr);
+  });
+}
 
-    function excluirProduto(index) {
-      if (!confirm('Deseja excluir este produto?')) return;
-      produtos.splice(index, 1);
-      salvar();
-      editIndex = null;
-      limparCampos();
-    }
+function baixarExcel(){
+  if(produtos.length===0){ alert('Não há produtos para baixar!'); return; }
+  const dados=produtos.map(p=>{
+    const qtdComprar=p.estoqueAtual<p.estoqueIdeal?p.estoqueIdeal-p.estoqueAtual:0;
+    const valorTotal=(qtdComprar*p.preco).toFixed(2);
+    return {Produto:p.produto,Descricao:p.descricao,EstoqueAtual:p.estoqueAtual,EstoqueIdeal:p.estoqueIdeal,Preco:p.preco.toFixed(2),QtdComprar:qtdComprar,ValorTotal:valorTotal,Status:qtdComprar>0?'Comprar':'OK'};
+  });
+  const ws=XLSX.utils.json_to_sheet(dados);
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,'Estoque');
+  XLSX.writeFile(wb,'estoque.xlsx');
+}
 
-    function limparCampos() {
-      document.getElementById('produto').value = '';
-      document.getElementById('descricao').value = '';
-      document.getElementById('estoqueAtual').value = '';
-      document.getElementById('estoqueIdeal').value = '';
-      document.getElementById('preco').value = '';
-      document.getElementById('produto-hint').classList.remove('visible');
-      document.getElementById('produto').classList.remove('invalid');
-      document.querySelectorAll('#tabela tbody tr').forEach(r => r.classList.remove('selected'));
-    }
-
-    function limparTudo() {
-      if (!confirm('Tem certeza que deseja apagar todos os produtos?')) return;
-      produtos = [];
-      salvar();
-      limparCampos();
-    }
-
-    function corLinha(p) {
-      if (p.estoqueAtual < p.estoqueIdeal) return 'vermelho';
-      if (p.estoqueAtual === p.estoqueIdeal) return 'amarelo';
-      return 'verde';
-    }
-
-    function atualizarTabela() {
-      const tbody = document.querySelector('#tabela tbody');
-      tbody.innerHTML = '';
-
-      const produtosOrdenados = [...produtos].sort((a,b) => a.produto.localeCompare(b.produto));
-      const filtro = document.getElementById('filtro').value;
-
-      produtosOrdenados.forEach((p, idx) => {
-        const quantidadeComprar = p.estoqueAtual < p.estoqueIdeal ? (p.estoqueIdeal - p.estoqueAtual) : 0;
-        if (filtro === 'comprar' && quantidadeComprar <= 0) return;
-        if (filtro === 'ok' && quantidadeComprar > 0) return;
-
-        const tr = document.createElement('tr');
-        tr.className = corLinha(p);
-
-        const precoFormatado = (typeof p.preco === 'number') ? p.preco.toFixed(2).replace('.', ',') : '0,00';
-        const valorTotal = (quantidadeComprar * (p.preco||0)).toFixed(2).replace('.', ',');
-
-       
+atualizarTabela();
+</script>
+</body>
+</html>
