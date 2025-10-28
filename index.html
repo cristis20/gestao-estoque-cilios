@@ -4,14 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Gestão de Estoque</title>
-  <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#FFB6C1">
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-
-  <link rel="apple-touch-icon" sizes="180x180" href="icon-512.png">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
   <style>
     body { 
@@ -121,11 +116,11 @@
       <div class="form-row">
         <div>
           <label>Produto:</label>
-          <input type="text" id="produto" maxlength="10" placeholder="Produto (máx 10)">
+          <input type="text" id="produto" maxlength="50" placeholder="Produto (máx 50)">
         </div>
         <div>
           <label>Descrição:</label>
-          <input type="text" id="descricao" maxlength="35" placeholder="Descrição (máx 35)">
+          <input type="text" id="descricao" maxlength="200" placeholder="Descrição (máx 200)">
         </div>
       </div>
 
@@ -140,14 +135,14 @@
         </div>
         <div>
           <label>Preço (R$):</label>
-          <input type="number" id="preco" step="0.01" min="0" placeholder="0,00">
+          <input type="text" id="preco" placeholder="0,00">
         </div>
       </div>
 
       <div class="buttons-row">
-        <button class="btn add" onclick="adicionarProduto()">Adicionar</button>
-        <button class="btn clear" onclick="limparTudo()">Limpar Tudo</button>
-        <button class="btn" onclick="baixarExcel()">Baixar Excel</button>
+        <button type="button" class="btn add" onclick="adicionarProduto()">Adicionar</button>
+        <button type="button" class="btn clear" onclick="limparTudo()">Limpar Tudo</button>
+        <button type="button" class="btn" onclick="baixarExcel()">Baixar Excel</button>
       </div>
     </div>
 
@@ -181,110 +176,139 @@
       });
     }
 
+    // Carrega e inicializa
     let produtos = JSON.parse(localStorage.getItem('produtos')) || [];
     let editIndex = null;
 
-    function salvar() { 
-      localStorage.setItem('produtos', JSON.stringify(produtos)); 
-      atualizarTabela(); 
+    function salvar() {
+      localStorage.setItem('produtos', JSON.stringify(produtos));
+      atualizarTabela();
+    }
+
+    // Função para converter input de preço aceitando vírgula ou ponto e limpar espaços
+    function parsePreco(valorStr) {
+      if (typeof valorStr !== 'string') return NaN;
+      const s = valorStr.trim().replace(/\s/g, '').replace(',', '.');
+      const v = parseFloat(s);
+      return isNaN(v) ? NaN : v;
     }
 
     function adicionarProduto() {
       const produto = document.getElementById('produto').value.trim();
       const descricao = document.getElementById('descricao').value.trim();
-      const estoqueAtual = parseInt(document.getElementById('estoqueAtual').value);
-      const estoqueIdeal = parseInt(document.getElementById('estoqueIdeal').value);
-      const preco = parseFloat(document.getElementById('preco').value);
 
-      if (!produto || isNaN(estoqueAtual) || isNaN(estoqueIdeal) || isNaN(preco)) { 
-        alert('Preencha todos os campos!'); 
-        return; 
+      const estoqueAtualRaw = document.getElementById('estoqueAtual').value;
+      const estoqueIdealRaw = document.getElementById('estoqueIdeal').value;
+      const precoRaw = document.getElementById('preco').value;
+
+      const estoqueAtual = estoqueAtualRaw === '' ? NaN : parseInt(estoqueAtualRaw, 10);
+      const estoqueIdeal = estoqueIdealRaw === '' ? NaN : parseInt(estoqueIdealRaw, 10);
+      const preco = parsePreco(precoRaw);
+
+      // Validação
+      if (!produto) { alert('Informe o nome do produto.'); return; }
+      if (isNaN(estoqueAtual)) { alert('Informe o Estoque Atual.'); return; }
+      if (isNaN(estoqueIdeal)) { alert('Informe o Estoque Ideal.'); return; }
+      if (isNaN(preco)) { alert('Informe o Preço válido (use , ou . para decimais).'); return; }
+
+      const novoProduto = {
+        produto,
+        descricao,
+        estoqueAtual,
+        estoqueIdeal,
+        preco: Number(preco.toFixed(2))
+      };
+
+      if (editIndex !== null) {
+        produtos[editIndex] = novoProduto;
+        editIndex = null;
+      } else {
+        produtos.push(novoProduto);
       }
 
-      const novoProduto = { produto, descricao, estoqueAtual, estoqueIdeal, preco };
-      if (editIndex !== null) { 
-        produtos[editIndex] = novoProduto; 
-        editIndex = null; 
-      } else { 
-        produtos.push(novoProduto); 
-      }
-      salvar(); 
+      salvar();
       limparCampos();
     }
 
     function editarProduto(index) {
       const p = produtos[index];
+      if (!p) return;
       document.getElementById('produto').value = p.produto;
       document.getElementById('descricao').value = p.descricao;
       document.getElementById('estoqueAtual').value = p.estoqueAtual;
       document.getElementById('estoqueIdeal').value = p.estoqueIdeal;
-      document.getElementById('preco').value = p.preco;
+      // mostra com vírgula para o usuário
+      document.getElementById('preco').value = (typeof p.preco === 'number') ? p.preco.toFixed(2).replace('.', ',') : '';
       editIndex = index;
+      // marca a linha
+      document.querySelectorAll('#tabela tbody tr').forEach(r => r.classList.remove('selected'));
+      const rows = Array.from(document.querySelectorAll('#tabela tbody tr'));
+      if (rows[index]) rows[index].classList.add('selected');
     }
 
-    function excluirProduto(index) { 
-      if(confirm('Deseja excluir este produto?')) { 
-        produtos.splice(index, 1); 
-        salvar(); 
-      } 
+    function excluirProduto(index) {
+      if (!confirm('Deseja excluir este produto?')) return;
+      produtos.splice(index, 1);
+      salvar();
+      editIndex = null;
+      limparCampos();
     }
 
     function limparCampos() {
-      document.getElementById('produto').value='';
-      document.getElementById('descricao').value='';
-      document.getElementById('estoqueAtual').value='';
-      document.getElementById('estoqueIdeal').value='';
-      document.getElementById('preco').value='';
+      document.getElementById('produto').value = '';
+      document.getElementById('descricao').value = '';
+      document.getElementById('estoqueAtual').value = '';
+      document.getElementById('estoqueIdeal').value = '';
+      document.getElementById('preco').value = '';
+      document.querySelectorAll('#tabela tbody tr').forEach(r => r.classList.remove('selected'));
     }
 
-    function limparTudo() { 
-      if(confirm('Tem certeza que deseja apagar todos os produtos?')) { 
-        produtos = []; 
-        salvar(); 
-      } 
+    function limparTudo() {
+      if (!confirm('Tem certeza que deseja apagar todos os produtos?')) return;
+      produtos = [];
+      salvar();
+      limparCampos();
     }
 
-    function corLinha(p) { 
-      if(p.estoqueAtual < p.estoqueIdeal) return 'vermelho'; 
-      if(p.estoqueAtual === p.estoqueIdeal) return 'amarelo'; 
-      return 'verde'; 
+    function corLinha(p) {
+      if (p.estoqueAtual < p.estoqueIdeal) return 'vermelho';
+      if (p.estoqueAtual === p.estoqueIdeal) return 'amarelo';
+      return 'verde';
     }
 
     function atualizarTabela() {
-      const tbody = document.querySelector('#tabela tbody'); 
-      tbody.innerHTML='';
+      const tbody = document.querySelector('#tabela tbody');
+      tbody.innerHTML = '';
 
       const produtosOrdenados = [...produtos].sort((a,b) => a.produto.localeCompare(b.produto));
-
       const filtro = document.getElementById('filtro').value;
-      produtosOrdenados.forEach((p,index)=>{
+
+      produtosOrdenados.forEach((p, idx) => {
         const quantidadeComprar = p.estoqueAtual < p.estoqueIdeal ? (p.estoqueIdeal - p.estoqueAtual) : 0;
-        if(filtro==='comprar' && quantidadeComprar<=0) return;
-        if(filtro==='ok' && quantidadeComprar>0) return;
-        const tr=document.createElement('tr'); 
-        tr.className=corLinha(p);
-        tr.innerHTML=`
+        if (filtro === 'comprar' && quantidadeComprar <= 0) return;
+        if (filtro === 'ok' && quantidadeComprar > 0) return;
+
+        const tr = document.createElement('tr');
+        tr.className = corLinha(p);
+
+        const precoFormatado = (typeof p.preco === 'number') ? p.preco.toFixed(2).replace('.', ',') : '0,00';
+
+        tr.innerHTML = `
           <td>${p.produto}</td>
           <td>${p.estoqueAtual}</td>
           <td>${p.estoqueIdeal}</td>
           <td class='${quantidadeComprar>0?'vermelho':''}'>${quantidadeComprar}</td>
-          <td>${p.preco.toFixed(2)}</td>
-          <td>${quantidadeComprar>0?'Comprar':'OK'}</td>
+          <td>R$ ${precoFormatado}</td>
+          <td>${quantidadeComprar>0 ? 'Comprar' : 'OK'}</td>
           <td>
-            <button class='btn edit' onclick='editarProduto(${produtos.indexOf(p)})'>Editar</button>
-            <button class='btn delete' onclick='excluirProduto(${produtos.indexOf(p)})'>Excluir</button>
+            <button type="button" class="btn edit" onclick="editarProduto(${produtos.indexOf(p)})">Editar</button>
+            <button type="button" class="btn delete" onclick="excluirProduto(${produtos.indexOf(p)})">Excluir</button>
           </td>`;
 
+        // clicar na linha preenche o topo (mesma função de editar)
         tr.addEventListener('click', () => {
-          document.getElementById('produto').value = p.produto;
-          document.getElementById('descricao').value = p.descricao;
-          document.getElementById('estoqueAtual').value = p.estoqueAtual;
-          document.getElementById('estoqueIdeal').value = p.estoqueIdeal;
-          document.getElementById('preco').value = p.preco;
-          editIndex = produtos.indexOf(p);
-
-          document.querySelectorAll('#tabela tbody tr').forEach(r => r.classList.remove('selected'));
-          tr.classList.add('selected');
+          const indexOriginal = produtos.indexOf(p);
+          editarProduto(indexOriginal);
         });
 
         tbody.appendChild(tr);
@@ -302,8 +326,8 @@
           'Estoque Atual': p.estoqueAtual,
           'Estoque Ideal': p.estoqueIdeal,
           'Quantidade a Comprar': quantidadeComprar,
-          'Preço (R$)': p.preco.toFixed(2),
-          'Status': quantidadeComprar>0?'Comprar':'OK'
+          'Preço (R$)': (typeof p.preco === 'number') ? p.preco.toFixed(2) : '',
+          'Status': quantidadeComprar > 0 ? 'Comprar' : 'OK'
         };
       });
 
@@ -313,6 +337,7 @@
       XLSX.writeFile(wb, 'estoque.xlsx');
     }
 
+    // inicial
     atualizarTabela();
   </script>
 </body>
