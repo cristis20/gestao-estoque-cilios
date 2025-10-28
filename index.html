@@ -33,20 +33,26 @@
       max-width: 950px; 
       width: 100%; 
       margin: 0 auto; 
-      background: #fff0f6; /* rosa clarinho para o container */
+      background: #fff0f6; /* rosa clarinho */
       padding: 20px; 
       border-radius: 15px; 
-      box-shadow: 0 0 15px rgba(198, 77, 123, 0.3); /* sombra suave rosa */
+      box-shadow: 0 0 15px rgba(198, 77, 123, 0.3);
     }
 
-    input, button, select { 
-      display: block; 
-      width: 100%; 
-      padding: 10px; 
-      margin-bottom: 10px; 
-      box-sizing: border-box; 
+    .form-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .form-row label {
+      flex-basis: 100%;
+    }
+    .form-row input, .form-row select {
+      flex: 1;
+      padding: 10px;
       border-radius: 8px;
-      border: 1px solid #ffc0cb; /* borda rosa suave */
+      border: 1px solid #ffc0cb;
+      box-sizing: border-box;
     }
 
     table { 
@@ -65,7 +71,7 @@
     }
 
     th { 
-      background-color: #ffc0cb; /* rosa médio para o cabeçalho */
+      background-color: #ffc0cb; /* rosa médio */
       color: #800040;
     }
 
@@ -75,39 +81,66 @@
       border-radius: 8px; 
       padding: 10px 15px; 
       font-weight: bold;
+      margin-top: 10px;
       transition: 0.3s;
     }
 
     .btn:hover { opacity: 0.9; }
 
-    .add { background: #ff69b4; color: white; } /* rosa vibrante */
-    .edit { background: #ff85c1; color: white; } /* rosa claro */
-    .delete { background: #ff4d6d; color: white; } /* vermelho-rosado */
-    .clear { background: #c71585; color: white; float: right; }
+    .add { background: #ff69b4; color: white; } 
+    .edit { background: #ff85c1; color: white; } 
+    .delete { background: #ff4d6d; color: white; } 
+    .clear { background: #c71585; color: white; }
 
-    .verde { background-color: #d4f0dc; }    /* verde suave */
-    .amarelo { background-color: #fff0b3; }  /* amarelo suave */
-    .vermelho { background-color: #ffc1c1; } /* vermelho suave */
+    .verde { background-color: #d4f0dc; }    
+    .amarelo { background-color: #fff0b3; }  
+    .vermelho { background-color: #ffc1c1; } 
 
     select { background-color: #ffe6f0; color: #800040; }
+    .buttons-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .buttons-row button {
+      flex: 1;
+    }
   </style>
 </head>
 <body>
   <div class="container">
     <h1>Gestão de Estoque</h1>
 
-    <label>Produto:</label>
-    <input type="text" id="produto" maxlength="20" placeholder="Nome do produto">
-    <label>Descrição:</label>
-    <input type="text" id="descricao" maxlength="20" placeholder="Descrição (máx 20 caracteres)">
-    <label>Estoque Atual:</label>
-    <input type="number" id="estoqueAtual" step="1" min="0">
-    <label>Estoque Ideal:</label>
-    <input type="number" id="estoqueIdeal" step="1" min="0">
+    <!-- Linha Produto / Descrição -->
+    <div class="form-row">
+      <div style="flex: 1;">
+        <label>Produto:</label>
+        <input type="text" id="produto" maxlength="10" placeholder="Produto (máx 10)">
+      </div>
+      <div style="flex: 2;">
+        <label>Descrição:</label>
+        <input type="text" id="descricao" maxlength="20" placeholder="Descrição (máx 20)">
+      </div>
+    </div>
 
-    <button class="btn add" onclick="adicionarProduto()">Adicionar</button>
-    <button class="btn clear" onclick="limparTudo()">Limpar Tudo</button>
-    <button class="btn" onclick="baixarExcel()">Baixar Excel</button>
+    <!-- Linha Estoque Atual / Estoque Ideal -->
+    <div class="form-row">
+      <div style="flex: 1;">
+        <label>Estoque Atual:</label>
+        <input type="number" id="estoqueAtual" step="1" min="0">
+      </div>
+      <div style="flex: 1;">
+        <label>Estoque Ideal:</label>
+        <input type="number" id="estoqueIdeal" step="1" min="0">
+      </div>
+    </div>
+
+    <!-- Botões alinhados -->
+    <div class="buttons-row">
+      <button class="btn add" onclick="adicionarProduto()">Adicionar</button>
+      <button class="btn clear" onclick="limparTudo()">Limpar Tudo</button>
+      <button class="btn" onclick="baixarExcel()">Baixar Excel</button>
+    </div>
 
     <label>Filtrar produtos:</label>
     <select id="filtro" onchange="atualizarTabela()">
