@@ -18,7 +18,7 @@
   <style>
     body { 
       font-family: Arial, sans-serif; 
-      background: #ffe6f0; /* rosa suave */
+      background: #ffe6f0; 
       margin: 0; 
       padding: 20px; 
       overflow-x: hidden; 
@@ -26,14 +26,14 @@
 
     h1 { 
       text-align: center; 
-      color: #d6336c; /* rosa mais forte */
+      color: #d6336c;
     }
 
     .container { 
       max-width: 950px; 
       width: 100%; 
       margin: 0 auto; 
-      background: #fff0f6; /* rosa clarinho */
+      background: #fff0f6; 
       padding: 20px; 
       border-radius: 15px; 
       box-shadow: 0 0 15px rgba(198, 77, 123, 0.3);
@@ -45,10 +45,7 @@
       margin-bottom: 10px;
       align-items: flex-end;
     }
-    .form-row label {
-      display: block;
-      margin-bottom: 2px;
-    }
+    .form-row label { display: block; margin-bottom: 2px; }
 
     input[type="text"], input[type="number"], select {
       padding: 8px;
@@ -58,9 +55,9 @@
       background-color: rgba(255, 255, 255, 0.85);
     }
 
-    input#produto { width: 100px; }    /* Produto = 10 caracteres */
-    input#descricao { width: 200px; }  /* Descrição = 20 caracteres */
-    input#estoqueAtual, input#estoqueIdeal { width: 60px; } /* Estoques = 4 caracteres */
+    input#produto { width: 100px; }
+    input#descricao { width: 350px; }
+    input#estoqueAtual, input#estoqueIdeal { width: 60px; }
 
     table { 
       width: 100%; 
@@ -78,7 +75,7 @@
     }
 
     th { 
-      background-color: #ffc0cb; /* rosa médio */
+      background-color: #ffc0cb; 
       color: #800040;
     }
 
@@ -104,14 +101,8 @@
     .vermelho { background-color: #ffc1c1; } 
 
     select { background-color: #ffe6f0; color: #800040; }
-    .buttons-row {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 10px;
-    }
-    .buttons-row button {
-      flex: 1;
-    }
+    .buttons-row { display: flex; gap: 10px; margin-bottom: 10px; }
+    .buttons-row button { flex: 1; }
   </style>
 </head>
 <body>
@@ -126,7 +117,7 @@
       </div>
       <div>
         <label>Descrição:</label>
-        <input type="text" id="descricao" maxlength="20" size="20" placeholder="Descrição (máx 20)">
+        <input type="text" id="descricao" maxlength="35" size="35" placeholder="Descrição (máx 35)">
       </div>
     </div>
 
@@ -182,17 +173,29 @@
     let produtos = JSON.parse(localStorage.getItem('produtos')) || [];
     let editIndex = null;
 
-    function salvar() { localStorage.setItem('produtos', JSON.stringify(produtos)); atualizarTabela(); }
+    function salvar() { 
+      localStorage.setItem('produtos', JSON.stringify(produtos)); 
+      atualizarTabela(); 
+    }
 
     function adicionarProduto() {
       const produto = document.getElementById('produto').value.trim();
       const descricao = document.getElementById('descricao').value.trim();
       const estoqueAtual = parseInt(document.getElementById('estoqueAtual').value);
       const estoqueIdeal = parseInt(document.getElementById('estoqueIdeal').value);
-      if (!produto || isNaN(estoqueAtual) || isNaN(estoqueIdeal)) { alert('Preencha todos os campos!'); return; }
+      if (!produto || isNaN(estoqueAtual) || isNaN(estoqueIdeal)) { 
+        alert('Preencha todos os campos!'); 
+        return; 
+      }
       const novoProduto = { produto, descricao, estoqueAtual, estoqueIdeal };
-      if (editIndex !== null) { produtos[editIndex] = novoProduto; editIndex = null; } else { produtos.push(novoProduto); }
-      salvar(); limparCampos();
+      if (editIndex !== null) { 
+        produtos[editIndex] = novoProduto; 
+        editIndex = null; 
+      } else { 
+        produtos.push(novoProduto); 
+      }
+      salvar(); 
+      limparCampos();
     }
 
     function editarProduto(index) {
@@ -204,7 +207,12 @@
       editIndex = index;
     }
 
-    function excluirProduto(index) { if(confirm('Deseja excluir este produto?')) { produtos.splice(index, 1); salvar(); } }
+    function excluirProduto(index) { 
+      if(confirm('Deseja excluir este produto?')) { 
+        produtos.splice(index, 1); 
+        salvar(); 
+      } 
+    }
 
     function limparCampos() {
       document.getElementById('produto').value='';
@@ -213,14 +221,28 @@
       document.getElementById('estoqueIdeal').value='';
     }
 
-    function limparTudo() { if(confirm('Tem certeza que deseja apagar todos os produtos?')) { produtos = []; salvar(); } }
+    function limparTudo() { 
+      if(confirm('Tem certeza que deseja apagar todos os produtos?')) { 
+        produtos = []; 
+        salvar(); 
+      } 
+    }
 
-    function corLinha(p) { if(p.estoqueAtual<p.estoqueIdeal)return'vermelho'; if(p.estoqueAtual===p.estoqueIdeal)return'amarelo'; return'verde'; }
+    function corLinha(p) { 
+      if(p.estoqueAtual < p.estoqueIdeal) return 'vermelho'; 
+      if(p.estoqueAtual === p.estoqueIdeal) return 'amarelo'; 
+      return 'verde'; 
+    }
 
     function atualizarTabela() {
-      const tbody=document.querySelector('#tabela tbody'); tbody.innerHTML='';
+      const tbody = document.querySelector('#tabela tbody'); 
+      tbody.innerHTML='';
+
+      // Ordenar produtos em ordem alfabética pelo nome
+      const produtosOrdenados = [...produtos].sort((a,b) => a.produto.localeCompare(b.produto));
+
       const filtro = document.getElementById('filtro').value;
-      produtos.forEach((p,index)=>{
+      produtosOrdenados.forEach((p,index)=>{
         const quantidadeComprar = p.estoqueAtual < p.estoqueIdeal ? (p.estoqueIdeal - p.estoqueAtual) : 0;
         if(filtro==='comprar' && quantidadeComprar<=0) return;
         if(filtro==='ok' && quantidadeComprar>0) return;
@@ -233,8 +255,8 @@
           <td class='${quantidadeComprar>0?'vermelho':''}'>${quantidadeComprar}</td>
           <td>${quantidadeComprar>0?'Comprar':'OK'}</td>
           <td>
-            <button class='btn edit' onclick='editarProduto(${index})'>Editar</button>
-            <button class='btn delete' onclick='excluirProduto(${index})'>Excluir</button>
+            <button class='btn edit' onclick='editarProduto(${produtos.indexOf(p)})'>Editar</button>
+            <button class='btn delete' onclick='excluirProduto(${produtos.indexOf(p)})'>Excluir</button>
           </td>`;
         tbody.appendChild(tr);
       });
