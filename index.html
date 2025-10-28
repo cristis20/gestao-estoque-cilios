@@ -116,7 +116,7 @@
       <div class="form-row">
         <div>
           <label>Produto:</label>
-          <input type="text" id="produto" maxlength="50" placeholder="Produto (máx 50)">
+          <input type="text" id="produto" maxlength="50" placeholder="Código do produto (máx 50)">
         </div>
         <div>
           <label>Descrição:</label>
@@ -176,7 +176,6 @@
       });
     }
 
-    // Carrega e inicializa
     let produtos = JSON.parse(localStorage.getItem('produtos')) || [];
     let editIndex = null;
 
@@ -185,7 +184,6 @@
       atualizarTabela();
     }
 
-    // Função para converter input de preço aceitando vírgula ou ponto e limpar espaços
     function parsePreco(valorStr) {
       if (typeof valorStr !== 'string') return NaN;
       const s = valorStr.trim().replace(/\s/g, '').replace(',', '.');
@@ -196,28 +194,23 @@
     function adicionarProduto() {
       const produto = document.getElementById('produto').value.trim();
       const descricao = document.getElementById('descricao').value.trim();
+      const estoqueAtual = parseInt(document.getElementById('estoqueAtual').value);
+      const estoqueIdeal = parseInt(document.getElementById('estoqueIdeal').value);
+      const preco = parsePreco(document.getElementById('preco').value);
 
-      const estoqueAtualRaw = document.getElementById('estoqueAtual').value;
-      const estoqueIdealRaw = document.getElementById('estoqueIdeal').value;
-      const precoRaw = document.getElementById('preco').value;
+      if (!produto) return alert('Informe o código do produto.');
+      if (isNaN(estoqueAtual)) return alert('Informe o Estoque Atual.');
+      if (isNaN(estoqueIdeal)) return alert('Informe o Estoque Ideal.');
+      if (isNaN(preco)) return alert('Informe o Preço válido (use , ou . para decimais).');
 
-      const estoqueAtual = estoqueAtualRaw === '' ? NaN : parseInt(estoqueAtualRaw, 10);
-      const estoqueIdeal = estoqueIdealRaw === '' ? NaN : parseInt(estoqueIdealRaw, 10);
-      const preco = parsePreco(precoRaw);
+      // Impedir duplicado (exceto se for o mesmo sendo editado)
+      const produtoExistente = produtos.findIndex(p => p.produto.toLowerCase() === produto.toLowerCase());
+      if (produtoExistente !== -1 && produtoExistente !== editIndex) {
+        alert('Produto já cadastrado! Edite o existente ou use outro código.');
+        return;
+      }
 
-      // Validação
-      if (!produto) { alert('Informe o nome do produto.'); return; }
-      if (isNaN(estoqueAtual)) { alert('Informe o Estoque Atual.'); return; }
-      if (isNaN(estoqueIdeal)) { alert('Informe o Estoque Ideal.'); return; }
-      if (isNaN(preco)) { alert('Informe o Preço válido (use , ou . para decimais).'); return; }
-
-      const novoProduto = {
-        produto,
-        descricao,
-        estoqueAtual,
-        estoqueIdeal,
-        preco: Number(preco.toFixed(2))
-      };
+      const novoProduto = { produto, descricao, estoqueAtual, estoqueIdeal, preco: Number(preco.toFixed(2)) };
 
       if (editIndex !== null) {
         produtos[editIndex] = novoProduto;
@@ -237,10 +230,9 @@
       document.getElementById('descricao').value = p.descricao;
       document.getElementById('estoqueAtual').value = p.estoqueAtual;
       document.getElementById('estoqueIdeal').value = p.estoqueIdeal;
-      // mostra com vírgula para o usuário
       document.getElementById('preco').value = (typeof p.preco === 'number') ? p.preco.toFixed(2).replace('.', ',') : '';
       editIndex = index;
-      // marca a linha
+
       document.querySelectorAll('#tabela tbody tr').forEach(r => r.classList.remove('selected'));
       const rows = Array.from(document.querySelectorAll('#tabela tbody tr'));
       if (rows[index]) rows[index].classList.add('selected');
@@ -305,7 +297,6 @@
             <button type="button" class="btn delete" onclick="excluirProduto(${produtos.indexOf(p)})">Excluir</button>
           </td>`;
 
-        // clicar na linha preenche o topo (mesma função de editar)
         tr.addEventListener('click', () => {
           const indexOriginal = produtos.indexOf(p);
           editarProduto(indexOriginal);
@@ -337,7 +328,6 @@
       XLSX.writeFile(wb, 'estoque.xlsx');
     }
 
-    // inicial
     atualizarTabela();
   </script>
 </body>
