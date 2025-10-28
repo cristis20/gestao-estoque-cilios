@@ -42,9 +42,9 @@
     <label>Descrição:</label>
     <input type="text" id="descricao" maxlength="20" placeholder="Descrição (máx 20 caracteres)">
     <label>Estoque Atual:</label>
-    <input type="number" id="estoqueAtual" step="0.1" min="0">
+    <input type="number" id="estoqueAtual" step="1" min="0">
     <label>Estoque Ideal:</label>
-    <input type="number" id="estoqueIdeal" step="0.1" min="0">
+    <input type="number" id="estoqueIdeal" step="1" min="0">
 
     <button class="btn add" onclick="adicionarProduto()">Adicionar</button>
     <button class="btn clear" onclick="limparTudo()">Limpar Tudo</button>
@@ -89,8 +89,8 @@
     function adicionarProduto() {
       const produto = document.getElementById('produto').value.trim();
       const descricao = document.getElementById('descricao').value.trim();
-      const estoqueAtual = parseFloat(document.getElementById('estoqueAtual').value);
-      const estoqueIdeal = parseFloat(document.getElementById('estoqueIdeal').value);
+      const estoqueAtual = parseInt(document.getElementById('estoqueAtual').value);
+      const estoqueIdeal = parseInt(document.getElementById('estoqueIdeal').value);
       if (!produto || isNaN(estoqueAtual) || isNaN(estoqueIdeal)) { alert('Preencha todos os campos!'); return; }
       const novoProduto = { produto, descricao, estoqueAtual, estoqueIdeal };
       if (editIndex !== null) { produtos[editIndex] = novoProduto; editIndex = null; } else { produtos.push(novoProduto); }
@@ -123,15 +123,15 @@
       const tbody=document.querySelector('#tabela tbody'); tbody.innerHTML='';
       const filtro = document.getElementById('filtro').value;
       produtos.forEach((p,index)=>{
-        const quantidadeComprar = p.estoqueAtual < p.estoqueIdeal ? (p.estoqueIdeal - p.estoqueAtual).toFixed(1) : 0;
+        const quantidadeComprar = p.estoqueAtual < p.estoqueIdeal ? (p.estoqueIdeal - p.estoqueAtual) : 0;
         if(filtro==='comprar' && quantidadeComprar<=0) return;
         if(filtro==='ok' && quantidadeComprar>0) return;
         const tr=document.createElement('tr'); tr.className=corLinha(p);
         tr.innerHTML=`
           <td>${p.produto}</td>
           <td>${p.descricao}</td>
-          <td>${p.estoqueAtual.toFixed(1)}</td>
-          <td>${p.estoqueIdeal.toFixed(1)}</td>
+          <td>${p.estoqueAtual}</td>
+          <td>${p.estoqueIdeal}</td>
           <td class='${quantidadeComprar>0?'vermelho':''}'>${quantidadeComprar}</td>
           <td>${quantidadeComprar>0?'Comprar':'OK'}</td>
           <td>
@@ -146,12 +146,12 @@
       if (produtos.length === 0) { alert('Não há produtos para baixar!'); return; }
 
       const dados = produtos.map(p => {
-        const quantidadeComprar = p.estoqueAtual < p.estoqueIdeal ? (p.estoqueIdeal - p.estoqueAtual).toFixed(1) : 0;
+        const quantidadeComprar = p.estoqueAtual < p.estoqueIdeal ? (p.estoqueIdeal - p.estoqueAtual) : 0;
         return {
           'Produto': p.produto,
           'Descrição': p.descricao,
-          'Estoque Atual': p.estoqueAtual.toFixed(1),
-          'Estoque Ideal': p.estoqueIdeal.toFixed(1),
+          'Estoque Atual': p.estoqueAtual,
+          'Estoque Ideal': p.estoqueIdeal,
           'Quantidade a Comprar': quantidadeComprar,
           'Status': quantidadeComprar>0?'Comprar':'OK'
         };
