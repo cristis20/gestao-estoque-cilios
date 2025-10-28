@@ -7,10 +7,8 @@
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#FFB6C1">
 
-  <!-- Biblioteca SheetJS para gerar Excel -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
-  <!-- Ícone iPhone -->
   <link rel="apple-touch-icon" sizes="180x180" href="icon-512.png">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -24,10 +22,7 @@
       overflow-x: hidden; 
     }
 
-    h1 { 
-      text-align: center; 
-      color: #d6336c;
-    }
+    h1 { text-align: center; color: #d6336c; }
 
     .container { 
       max-width: 950px; 
@@ -39,12 +34,7 @@
       box-shadow: 0 0 15px rgba(198, 77, 123, 0.3);
     }
 
-    .form-row {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 10px;
-      align-items: flex-end;
-    }
+    .form-row { display: flex; gap: 10px; margin-bottom: 10px; align-items: flex-end; }
     .form-row label { display: block; margin-bottom: 2px; }
 
     input[type="text"], input[type="number"], select {
@@ -59,36 +49,12 @@
     input#descricao { width: 350px; }
     input#estoqueAtual, input#estoqueIdeal { width: 60px; }
 
-    table { 
-      width: 100%; 
-      border-collapse: collapse; 
-      margin-top: 20px; 
-      background: #fff; 
-      border-radius: 10px;
-      overflow: hidden;
-    }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; background: #fff; border-radius: 10px; overflow: hidden; }
 
-    th, td { 
-      border: 1px solid #f5c6d0; 
-      padding: 12px; 
-      text-align: center; 
-    }
+    th, td { border: 1px solid #f5c6d0; padding: 12px; text-align: center; }
+    th { background-color: #ffc0cb; color: #800040; }
 
-    th { 
-      background-color: #ffc0cb; 
-      color: #800040;
-    }
-
-    .btn { 
-      cursor: pointer; 
-      border: none; 
-      border-radius: 8px; 
-      padding: 10px 15px; 
-      font-weight: bold;
-      margin-top: 10px;
-      transition: 0.3s;
-    }
-
+    .btn { cursor: pointer; border: none; border-radius: 8px; padding: 10px 15px; font-weight: bold; margin-top: 10px; transition: 0.3s; }
     .btn:hover { opacity: 0.9; }
 
     .add { background: #ff69b4; color: white; } 
@@ -98,18 +64,20 @@
 
     .verde { background-color: #d4f0dc; }    
     .amarelo { background-color: #fff0b3; }  
-    .vermelho { background-color: #ffc1c1; } 
+    .vermelho { background-color: #ffc1c1; }
 
     select { background-color: #ffe6f0; color: #800040; }
+
     .buttons-row { display: flex; gap: 10px; margin-bottom: 10px; }
     .buttons-row button { flex: 1; }
+
+    tr.selected { background-color: #ffd6e0; }
   </style>
 </head>
 <body>
   <div class="container">
     <h1>Gestão de Estoque</h1>
 
-    <!-- Linha Produto / Descrição -->
     <div class="form-row">
       <div>
         <label>Produto:</label>
@@ -121,7 +89,6 @@
       </div>
     </div>
 
-    <!-- Linha Estoque Atual / Estoque Ideal -->
     <div class="form-row">
       <div>
         <label>Estoque Atual:</label>
@@ -133,7 +100,6 @@
       </div>
     </div>
 
-    <!-- Botões alinhados -->
     <div class="buttons-row">
       <button class="btn add" onclick="adicionarProduto()">Adicionar</button>
       <button class="btn clear" onclick="limparTudo()">Limpar Tudo</button>
@@ -151,7 +117,6 @@
       <thead>
         <tr>
           <th>Produto</th>
-          <th>Descrição</th>
           <th>Estoque Atual</th>
           <th>Estoque Ideal</th>
           <th>Quantidade a Comprar</th>
@@ -246,10 +211,10 @@
         const quantidadeComprar = p.estoqueAtual < p.estoqueIdeal ? (p.estoqueIdeal - p.estoqueAtual) : 0;
         if(filtro==='comprar' && quantidadeComprar<=0) return;
         if(filtro==='ok' && quantidadeComprar>0) return;
-        const tr=document.createElement('tr'); tr.className=corLinha(p);
+        const tr=document.createElement('tr'); 
+        tr.className=corLinha(p);
         tr.innerHTML=`
           <td>${p.produto}</td>
-          <td>${p.descricao}</td>
           <td>${p.estoqueAtual}</td>
           <td>${p.estoqueIdeal}</td>
           <td class='${quantidadeComprar>0?'vermelho':''}'>${quantidadeComprar}</td>
@@ -258,6 +223,20 @@
             <button class='btn edit' onclick='editarProduto(${produtos.indexOf(p)})'>Editar</button>
             <button class='btn delete' onclick='excluirProduto(${produtos.indexOf(p)})'>Excluir</button>
           </td>`;
+
+        // Evento de clique na linha para preencher campos acima
+        tr.addEventListener('click', () => {
+          document.getElementById('produto').value = p.produto;
+          document.getElementById('descricao').value = p.descricao;
+          document.getElementById('estoqueAtual').value = p.estoqueAtual;
+          document.getElementById('estoqueIdeal').value = p.estoqueIdeal;
+          editIndex = produtos.indexOf(p);
+
+          // Destacar a linha selecionada
+          document.querySelectorAll('#tabela tbody tr').forEach(r => r.classList.remove('selected'));
+          tr.classList.add('selected');
+        });
+
         tbody.appendChild(tr);
       });
     }
