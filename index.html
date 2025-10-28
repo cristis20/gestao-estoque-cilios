@@ -34,7 +34,7 @@
       box-shadow: 0 0 15px rgba(198, 77, 123, 0.3);
     }
 
-    .form-row { display: flex; gap: 10px; margin-bottom: 10px; align-items: flex-end; }
+    .form-row { display: flex; gap: 10px; margin-bottom: 5px; align-items: flex-end; }
     .form-row label { display: block; margin-bottom: 2px; }
 
     input[type="text"], input[type="number"], select {
@@ -49,12 +49,30 @@
     input#descricao { width: 350px; }
     input#estoqueAtual, input#estoqueIdeal { width: 60px; }
 
-    table { width: 100%; border-collapse: collapse; margin-top: 20px; background: #fff; border-radius: 10px; overflow: hidden; }
+    .buttons-row { display: flex; gap: 10px; margin-bottom: 10px; }
+    .buttons-row button { flex: 1; }
 
-    th, td { border: 1px solid #f5c6d0; padding: 12px; text-align: center; }
+    table { 
+      width: 100%; 
+      border-collapse: collapse; 
+      margin-top: 5px; 
+      background: #fff; 
+      border-radius: 10px; 
+      overflow: hidden; 
+    }
+
+    th, td { border: 1px solid #f5c6d0; padding: 8px; text-align: center; box-sizing: border-box; }
     th { background-color: #ffc0cb; color: #800040; }
 
-    .btn { cursor: pointer; border: none; border-radius: 8px; padding: 10px 15px; font-weight: bold; margin-top: 10px; transition: 0.3s; }
+    /* Larguras fixas para alinhar com inputs */
+    table th:nth-child(1), table td:nth-child(1) { width: 100px; }   /* Produto */
+    table th:nth-child(2), table td:nth-child(2) { width: 60px; }    /* Estoque Atual */
+    table th:nth-child(3), table td:nth-child(3) { width: 60px; }    /* Estoque Ideal */
+    table th:nth-child(4), table td:nth-child(4) { width: 80px; }    /* Qtd a Comprar */
+    table th:nth-child(5), table td:nth-child(5) { width: 60px; }    /* Status */
+    table th:nth-child(6), table td:nth-child(6) { width: 140px; }   /* Ações */
+
+    .btn { cursor: pointer; border: none; border-radius: 8px; padding: 10px 15px; font-weight: bold; transition: 0.3s; }
     .btn:hover { opacity: 0.9; }
 
     .add { background: #ff69b4; color: white; } 
@@ -67,9 +85,6 @@
     .vermelho { background-color: #ffc1c1; }
 
     select { background-color: #ffe6f0; color: #800040; }
-
-    .buttons-row { display: flex; gap: 10px; margin-bottom: 10px; }
-    .buttons-row button { flex: 1; }
 
     tr.selected { background-color: #ffd6e0; }
   </style>
@@ -203,7 +218,6 @@
       const tbody = document.querySelector('#tabela tbody'); 
       tbody.innerHTML='';
 
-      // Ordenar produtos em ordem alfabética pelo nome
       const produtosOrdenados = [...produtos].sort((a,b) => a.produto.localeCompare(b.produto));
 
       const filtro = document.getElementById('filtro').value;
@@ -224,7 +238,6 @@
             <button class='btn delete' onclick='excluirProduto(${produtos.indexOf(p)})'>Excluir</button>
           </td>`;
 
-        // Evento de clique na linha para preencher campos acima
         tr.addEventListener('click', () => {
           document.getElementById('produto').value = p.produto;
           document.getElementById('descricao').value = p.descricao;
@@ -232,7 +245,6 @@
           document.getElementById('estoqueIdeal').value = p.estoqueIdeal;
           editIndex = produtos.indexOf(p);
 
-          // Destacar a linha selecionada
           document.querySelectorAll('#tabela tbody tr').forEach(r => r.classList.remove('selected'));
           tr.classList.add('selected');
         });
