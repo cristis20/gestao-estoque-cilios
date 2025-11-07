@@ -26,6 +26,7 @@ th{background:#ffc0cb;color:#800040;}
 tr.selected{background-color:#ffe0ed !important;box-shadow:inset 0 0 5px #d6336c;}
 select{background-color:#ffe6f0;color:#800040;width:100%;padding:5px;border-radius:8px;border:1px solid #ffc0cb;box-sizing:border-box;}
 .total-container{margin-top:10px;font-weight:bold;color:#800040;font-size:16px;text-align:right;}
+footer{margin-top:20px;text-align:center;font-size:13px;color:#800040;background:#fff0f6;padding:10px;border-radius:10px;}
 </style>
 </head>
 <body>
@@ -87,6 +88,10 @@ select{background-color:#ffe6f0;color:#800040;width:100%;padding:5px;border-radi
 </table>
 <div class="total-container" id="totalGeral">Valor Total Geral: R$ 0,00</div>
 </div>
+
+<footer>
+  Versão 1.0.1 - Atualizado em 07/11/25 💕
+</footer>
 
 <script>
 let produtos = JSON.parse(localStorage.getItem('produtos')) || [];
@@ -234,7 +239,7 @@ function baixarExcel(){
   XLSX.writeFile(wb,'estoque.xlsx');
 }
 
-// Força atualização em iPhone ao mudar o filtro
+// ---------- Filtro fixo para iPhone ----------
 document.getElementById('filtro').addEventListener('change', ()=>{
   setTimeout(atualizarTabela, 50);
 });
